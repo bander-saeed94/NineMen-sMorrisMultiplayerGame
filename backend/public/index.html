@@ -1,0 +1,158 @@
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Nine mothers</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb"
+        crossorigin="anonymous">
+    <style>
+        canvas {
+            margin: 0px;
+            border: black 1px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="row" id="myGameRow">
+        <div class="col">
+            <canvas id="myGame">
+                Sorry, your browser doesn't support the &lt;canvas&gt; element.
+            </canvas>
+        </div>
+    </div>
+    <div class="row">
+        <div id="nameFormDiv" class="col">
+            <form action="" id="nameForm">
+                <div class="input-group">
+                    <input id="nameTextField" autocomplete="off" type="text" class="form-control" placeholder="Your Name .." aria-label="Message ...">
+                    <span class="input-group-btn">
+                        <button id="nameButton" class="btn btn-secondary" type="submit">Submit name!</button>
+                    </span>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="row">
+        <div id="playAsGuestFormDiv" class="col">
+            <form action="" id="playAsGuestForm">
+                <div class="input-group">
+                    <span class="input-group-btn">
+                        <button id="playAsGuestButton" class="btn btn-secondary" type="submit">play As Guest!</button>
+                    </span>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="row">
+        <div id="createGameFormDiv" class="col-lg-3">
+            <form action="" id="createGameForm">
+                <div class="input-group">
+                    <input id="createGameTextField" autocomplete="off" type="text" class="form-control" placeholder="إنشاء غرفة" aria-label="cretae room ...">
+                    <span class="input-group-btn">
+                        <button id="createButton" class="btn btn-secondary" type="submit">إنشاء!</button>
+                    </span>
+                </div>
+            </form>
+        </div>
+        <div id="joinGameFormDiv" class="col-lg-3">
+            <form action="" id="joinGameForm">
+                <div class="input-group">
+                    <input id="joinGameTextField" autocomplete="off" type="text" class="form-control" placeholder="دخول غرفة" aria-label="join room ...">
+                    <span class="input-group-btn">
+                        <button id="joinButton" class="btn btn-secondary" type="submit">انضمام!</button>
+                    </span>
+                </div>
+            </form>
+        </div>
+        <div id="leaveFormDiv" class="col-lg-3">
+            <form action="" id="leaveForm">
+                <div class="input-group">
+                    <span class="input-group-btn">
+                        <button id="leaveButton" class="btn btn-secondary" type="submit">انسحاب!</button>
+                    </span>
+                </div>
+            </form>
+        </div>
+        <div id="loobyFormDiv" class="col-lg-3">
+            <form action="" id="loobyForm">
+                <div class="input-group">
+                    <span class="input-group-btn">
+                        <button id="loobyButton" class="btn btn-secondary" type="submit">اللوبي!</button>
+                    </span>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="row" id="rooms">
+        <div class="col-lg-6">
+            <h1>قائمة الغرف</h1>
+            <ul id="roomslist">
+            </ul>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-lg-6">
+            <h6 id="response"></h6>
+        </div>
+    </div>
+    <!-- <canvas id="myGame" width="345" height="700" /> -->
+    <audio data-key="65" src="./sounds/clap.wav"></audio>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js" integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh"
+        crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js" integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ"
+        crossorigin="anonymous"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        var socket = io();
+        var playerName = null;
+        var audio = document.querySelector(`audio[data-key="65"]`);
+    
+        
+        $('#myGameRow').hide();
+        $('#leaveFormDiv').hide();
+        $('#loobyFormDiv').hide();
+        $('#createGameFormDiv').hide();
+        $('#joinGameFormDiv').hide();
+        $('#rooms').hide();
+        // socket.emit('name', $("#nameTextField").val());
+        $('#nameForm').submit(() => {
+            socket.emit('name', $("#nameTextField").val());
+            return false;
+        });
+        $('#playAsGuestForm').submit(() => {
+            socket.emit('playAsGuest');
+            return false;
+        });
+        // socket.emit('playAsGuest');
+        // socket.emit('leaveGame');
+        socket.on('name', (name) => {
+            playerName = name;
+            enterLooby();
+        });
+        socket.on('usernameTaken', () => {
+            $('#response').text('username Taken');
+            setTimeout(() => {
+                $('#response').text('');
+            }, 3000)
+        });
+        socket.on('playerNameNotSet', () => {
+            // $('#response').text('set a name first Or play As a Guest');
+        });
+        $("#rooms").on("click", function (event) {
+            // console.log(event.target.id);
+            socket.emit('joinGame', event.target.id)
+            return false;
+        });
+    </script>
+    <script src="looby.js"></script>
+    <!-- <script src="game.js"></script> -->
+    <script src="gameSetup.js"></script>
+</body>
+
+</html>
